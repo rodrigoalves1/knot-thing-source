@@ -14,7 +14,7 @@
 extern "C" {
 #endif
 
-#include "knot_protocol.h"
+#include "knot_thing_protocol.h"
 
 typedef int (*intDataFunction)		(int32_t *val, int32_t *multiplier);
 typedef int (*floatDataFunction)	(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier);
@@ -47,29 +47,6 @@ typedef union __attribute__ ((packed)) {
 	knot_bool_functions	bool_f;
 	knot_raw_functions	raw_f;
 } knot_data_functions;
-
-typedef struct __attribute__ ((packed)) {
-	int32_t			multiplier;
-	int32_t			value_int;
-	uint32_t		value_dec;
-} knot_data_values_float;
-
-typedef struct __attribute__ ((packed)) {
-	int32_t			multiplier;
-	int32_t			value;
-} knot_data_values_int;
-
-typedef struct __attribute__ ((packed)) {
-	uint8_t			value;
-} knot_data_values_bool;
-
-typedef union __attribute__ ((packed)) {
-	knot_data_values_int value_i;
-	knot_data_values_float value_f;
-	knot_data_values_bool value_b;
-} knot_data_values;
-
-
 
 /* KNOT Thing main initialization functions and polling */
 int8_t	knot_thing_init(void);
