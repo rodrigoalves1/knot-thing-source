@@ -27,12 +27,10 @@ static struct {
 	uint16_t		type_id;	// KNOT_TYPE_ID_*
 	const char		*name;		// App defined data item name
 	// data values
-	knot_data_values	last_data;
+	knot_value_types	last_data;
 	uint8_t			*last_value_raw;
 	// config values
-	uint8_t			event_flags;	// Flags indicating when data will be sent
-	knot_data_values	lower_limit;
-	knot_data_values	upper_limit;
+	knot_config		config;	// Flags indicating when data will be sent
 	// Data read/write functions
 	knot_data_functions	functions;
 } data_items[KNOT_THING_DATA_MAX];
