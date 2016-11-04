@@ -67,7 +67,7 @@ int data_function_is_valid(knot_data_functions *func)
 {
 	if (func == NULL)
 		return -1;
-		
+
 	if (func->int_f.read == NULL && func->int_f.write == NULL)
 		return -1;
 
@@ -79,7 +79,7 @@ uint8_t item_is_unregistered(uint8_t sensor_id)
 	return (!(data_items[sensor_id].event_flags & KNOT_EVT_FLAG_UNREGISTERED));
 }
 
-int8_t knot_thing_init(void)
+int8_t knot_thing_init(const int protocol, const char *thing_name)
 {
 	reset_data_items();
 	return 0;
@@ -100,7 +100,7 @@ int8_t knot_thing_register_raw_data_item(uint8_t sensor_id, const char *name,
 	if (raw_buffer_len != KNOT_DATA_RAW_SIZE)
 		return -1;
 
-	if (knot_thing_register_data_item(sensor_id, name, type_id, value_type, 
+	if (knot_thing_register_data_item(sensor_id, name, type_id, value_type,
 		unit, func) != 0)
 		return -1;
 
@@ -116,7 +116,7 @@ int8_t knot_thing_register_data_item(uint8_t sensor_id, const char *name,
 	if (sensor_id >= KNOT_THING_DATA_MAX)
 		return -1;
 
-	if ((item_is_unregistered(sensor_id) != 0) || 
+	if ((item_is_unregistered(sensor_id) != 0) ||
 		(knot_schema_is_valid(type_id, value_type, unit) != 0) ||
 		name == NULL || (data_function_is_valid(func) != 0))
 		return -1;
@@ -182,7 +182,7 @@ int8_t knot_thing_run(void)
 	// TODO: add timer events
 	for (i = 0; i < KNOT_THING_DATA_MAX; i++)
 	{
-		if (data_items[i].value_type == KNOT_VALUE_TYPE_RAW) 
+		if (data_items[i].value_type == KNOT_VALUE_TYPE_RAW)
 		{
 			// Raw supports only KNOT_EVT_FLAG_CHANGE
 			if ((KNOT_EVT_FLAG_CHANGE & data_items[i].event_flags) == 0)
@@ -199,7 +199,7 @@ int8_t knot_thing_run(void)
 
 			if (uint8_val != KNOT_DATA_RAW_SIZE)
 				continue;
-			
+
 			if (memcmp(data_items[i].last_value_raw, uint8_buffer, KNOT_DATA_RAW_SIZE) == 0)
 				continue;
 
