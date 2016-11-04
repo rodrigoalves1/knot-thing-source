@@ -79,7 +79,10 @@ int knot_thing_protocol_run(void)
 			hal_storage_read(KNOT_TOKEN_ADDR, token,
 					KNOT_PROTOCOL_TOKEN_LEN);
 
-			state = STATE_AUTHENTICATING;
+			if (send_auth() < 0)
+				state = STATE_ERROR;
+			else
+				state = STATE_AUTHENTICATING;
 		} else {
 			if (send_register() < 0)
 				state = STATE_ERROR;
@@ -89,9 +92,11 @@ int knot_thing_protocol_run(void)
 	break;
 
 	case STATE_AUTHENTICATING:
-		//TODO: send Auth message
-		//TODO: process Auth result
-		state = STATE_ONLINE;
+		retval = read_auth();
+		if (retval < 0)
+			state = STATE_ERROR;
+		else if (retval > 0)
+			state = STATE_SCHEMA;
 	break;
 
 	case STATE_REGISTERING:
@@ -103,9 +108,6 @@ int knot_thing_protocol_run(void)
 	break;
 
 	case STATE_SCHEMA:
-		//TODO: send schema messages
-		//TODO: process schema results
-		state = STATE_ONLINE;
 	break;
 
 	case STATE_ONLINE:
@@ -176,5 +178,46 @@ static int read_register(void)
 
 		err = 1;
 	}
+	return err;
+}
+
+static int send_auth(void)
+{
+	knot_msg_authentication msg;
+	knot_msg_result resp;
+	ssize_t nbytes;
+
+	memset(&msg, 0, sizeof(msg));
+
+	msg.hdr.type = KNOT_MSG_AUTH_REQ;
+	msg.hdr.payload_length = sizeof(msg.uuid) + sizeof(msg.token);
+
+	strncpy(msg.uuid, uuid, sizeof(msg.uuid));
+	strncpy(msg.token, token, sizeof(msg.token));
+
+	nbytes = hal_comm_send(sock, &msg, sizeof(msg.hdr) +
+							msg.hdr.payload_len);
+	if (nbytes < 0)
+		return -1;
+
+	return 0;
+}
+
+static int read_auth(void)
+{
+	int err = 0;
+	knot_msg_result resp;
+
+	memset(&resp, 0, sizeof(resp));
+
+	nbytes = hal_comm_recv(sock, &resp, sizeof(resp));
+	if (nbytes > 0) {
+		if (resp.result != KNOT_SUCCESS)
+			return -1;
+		err = 1;
+	} else if (nbytes < 0) {
+		err = -1;
+	}
+
 	return err;
 }
