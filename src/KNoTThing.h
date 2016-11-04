@@ -13,12 +13,20 @@
 #include "knot_types.h"
 #include "knot_thing_main.h"
 
+#define TTY		0
+#define NRF24L01	1
+
 class KNoTThing {
 public:
 	KNoTThing();
 	~KNoTThing();
 
-	int init();
+	/*
+	 * This method initializes logging, radio, storage or other modules.
+	 * Additionally it requests registration to the cloud (if necessary).
+	 * eg protocol: 'TTY', 'NRF24L01'
+	 */
+	int init(const int protocol, const char *thing_name);
 
 	int registerIntData(const char *name, uint8_t sensor_id, uint16_t type_id,
 		uint8_t unit, intDataFunction read, intDataFunction write);
