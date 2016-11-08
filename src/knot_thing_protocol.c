@@ -135,6 +135,7 @@ int knot_thing_protocol_run(void)
 				case KNOT_MSG_CONFIG:
 					config(kreq->config);
 				case KNOT_MSG_SET_DATA:
+					set_data(kreq->data);
 				case KNOT_MSG_GET_DATA:
 					/* TODO */
 					break;
@@ -302,4 +303,13 @@ static int config(knot_msg_config config)
 		return -1;
 	else
 		return 0;
+}
+
+static int set_data(knot_msg_data data)
+{
+	int err;
+
+	err = thing_write(data.sensor_id, data.payload);
+
+	return err;
 }
