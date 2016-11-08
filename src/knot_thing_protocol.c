@@ -32,6 +32,8 @@
 static uint8_t enable_run = 0, schema_sensor_id = 0;
 static const char *thingname;
 static schema_function schemaf;
+static data_function thing_read;
+static data_function thing_write;
 
 int knot_thing_protocol_init(uint8_t protocol, const char *thing_name,
 					data_function read, data_function write,
@@ -41,6 +43,8 @@ int knot_thing_protocol_init(uint8_t protocol, const char *thing_name,
 	thingname = thing_name;
 	enable_run = 1;
 	schemaf = schema;
+	thing_read = read;
+	thing_write = write;
 }
 
 void knot_thing_protocol_exit(void)
@@ -55,6 +59,8 @@ int knot_thing_protocol_run(void)
 	uint8_t uuid_flag = 0, token_flag = 0;
 	const char *uuid, *token;
 	int retval = 0;
+	size_t ilen;
+	knot_msg *kreq
 
 	if (enable_run == 0)
 		return -1;
@@ -119,7 +125,22 @@ int knot_thing_protocol_run(void)
 		break;
 
 		case STATE_ONLINE:
-			//TODO: process incoming messages
+			ilen = hal_comm_recv(sockfd, buffer, sizeof(buffer));
+			if (len > 0) {
+				/* There is config or set data */
+				kreq = buffer;
+				switch (kreq->hdr.type) {
+				case KNOT_MSG_CONFIG:
+				case KNOT_MSG_SET_DATA:
+				case KNOT_MSG_GET_DATA:
+					/* TODO */
+					break;
+				default:
+					/* Invalid command */
+					break;
+				}
+
+			}
 			//TODO: send messages according to the events
 		break;
 
@@ -251,4 +272,5 @@ static int send_schema(void)
 	}
 
 	return 0;
+
 }
