@@ -34,10 +34,11 @@ static const char *thingname;
 static schema_function schemaf;
 static data_function thing_read;
 static data_function thing_write;
+static config_function configf;
 
 int knot_thing_protocol_init(uint8_t protocol, const char *thing_name,
 					data_function read, data_function write,
-							schema_function schema)
+				schema_function schema, config_function config)
 {
 	//TODO: open socket
 	thingname = thing_name;
@@ -45,6 +46,7 @@ int knot_thing_protocol_init(uint8_t protocol, const char *thing_name,
 	schemaf = schema;
 	thing_read = read;
 	thing_write = write;
+	config = config;
 }
 
 void knot_thing_protocol_exit(void)
@@ -131,6 +133,7 @@ int knot_thing_protocol_run(void)
 				kreq = buffer;
 				switch (kreq->hdr.type) {
 				case KNOT_MSG_CONFIG:
+					config(kreq->config);
 				case KNOT_MSG_SET_DATA:
 				case KNOT_MSG_GET_DATA:
 					/* TODO */
@@ -273,4 +276,30 @@ static int send_schema(void)
 
 	return 0;
 
+}
+
+static int config(knot_msg_config config)
+{
+	int err;
+	knot_msg_result resp;
+	ssize_t nbytes;
+
+	err = configf(config.sensor_id, config.values.event_flags,
+			config.values.lower_limit, config.values.upper_limit);
+
+	memset(&resp, 0, sizeof(resp));
+
+	if (err < 0)
+		resp.result = KNOT_ERROR_UNKNOWN;
+	else
+		resp.result = KNOT_SUCCESS;
+
+	resp.hdr.type = KNOT_MSG_CONFIG_RESP;
+	resp.hrd.payload_len = sizeof(resp.result);
+
+	nbytes = hal_comm_send(sock, resp, sizeof(resp.hdr) + resp.result);
+	if (nbytes < 0)
+		return -1;
+	else
+		return 0;
 }
