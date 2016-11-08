@@ -37,14 +37,18 @@
 static uint8_t enable_run = 0;
 static char uuid[KNOT_PROTOCOL_UUID_LEN];
 static char token[KNOT_PROTOCOL_TOKEN_LEN];
+static uint8_t enable_run = 0, schema_sensor_id = 0;
 static const char *thingname;
+static schema_function schemaf;
 
 int knot_thing_protocol_init(uint8_t protocol, const char *thing_name,
-					data_function read, data_function write)
+					data_function read, data_function write,
+							schema_function schema)
 {
 	//TODO: open socket
 	thingname = thing_name;
 	enable_run = 1;
+	schemaf = schema;
 }
 
 void knot_thing_protocol_exit(void)
