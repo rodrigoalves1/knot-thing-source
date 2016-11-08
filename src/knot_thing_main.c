@@ -266,6 +266,47 @@ static int data_item_read(uint8_t sensor_id, knot_data *data)
 	return 0;
 }
 
+static int data_item_write(uint8_t sensor_id, knot_data *data)
+{
+	if (data_items[sensor_id].name != KNOT_THING_EMPTY_ITEM) {
+		switch (data_items[sensor_id].value_type) {
+		case KNOT_VALUE_TYPE_RAW:
+			if (data_items[sensor_id].functions.raw_f.write == NULL)
+				return -1;
+			if (data_items[sensor_id].functions.raw_f.write(data->raw, sizeof(data->raw)) < 0)
+				return -1;
+
+			break
+		case KNOT_VALUE_TYPE_BOOL:
+			if (data_items[sensor_id].functions.bool_f.write == NULL)
+				return -1;
+			if (data_items[sensor_id].functions.bool_f.write(data->values.val_b) < 0)
+				return -1;
+			break;
+		case KNOT_VALUE_TYPE_INT:
+			if (data_items[sensor_id].functions.int_f.read == NULL)
+				return -1;
+			if (data_items[sensor_id].functions.int_f.write(data->values.val_i.value, data->values.val_i.multiplier) < 0)
+				return -1;
+			break;
+		case KNOT_VALUE_TYPE_FLOAT:
+			if (data_items[sensor_id].functions.float_f.write == NULL)
+				return -1;
+
+			if (data_items[sensor_id].functions.float_f.write(data->values.val_f.value_int, data->values.val_f.value_dec, data->values.val_f.multiplier) < 0)
+				return -1;
+			break;
+		default:
+			return-1;
+			break;
+		}
+	} else {
+		return -1;
+	}
+
+	return 0;
+}
+
 int8_t knot_thing_run(void)
 {
 	uint8_t i = 0, uint8_val = 0, comparison = 0, uint8_buffer[KNOT_DATA_RAW_SIZE];
