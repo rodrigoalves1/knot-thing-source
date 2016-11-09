@@ -47,6 +47,7 @@ static schema_function schemaf;
 static data_function thing_read;
 static data_function thing_write;
 static config_function configf;
+static int sock = -1;
 
 int knot_thing_protocol_init(uint8_t domain, uint8_t protocol, const char *thing_name,
 					data_function read, data_function write,
@@ -54,10 +55,12 @@ int knot_thing_protocol_init(uint8_t domain, uint8_t protocol, const char *thing
 {
 	int len;
 
+	sock = hal_comm_socket(domain, HAL_COMM_PROTO_RAW);
+	if (sock < 0)
+		return -1;
 	memset(device_name, 0, sizeof(device_name));
 
 	len = MIN(strlen(thing_name), sizeof(device_name) - 1);
-	//TODO: open socket
 	strncpy(device_name, thing_name, len);
 	enable_run = 1;
 	schemaf = schema;
