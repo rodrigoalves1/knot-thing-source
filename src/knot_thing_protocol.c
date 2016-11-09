@@ -55,7 +55,7 @@ int knot_thing_protocol_init(uint8_t domain, uint8_t protocol, const char *thing
 
 void knot_thing_protocol_exit(void)
 {
-	//TODO: close socket if needed
+	hal_comm_close(sock);
 	enable_run = 0;
 }
 
