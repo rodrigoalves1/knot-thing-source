@@ -161,13 +161,12 @@ int knot_thing_protocol_run(void)
 				set_data(kreq->data);
 				break;
 			case KNOT_MSG_GET_DATA:
-				/* TODO */
+				get_data(kreq->data);
 				break;
 			default:
 				/* Invalid command */
 				break;
 			}
-
 		}
 		//TODO: send messages according to the events
 	break;
@@ -343,4 +342,31 @@ static int set_data(knot_msg_data data)
 	err = thing_write(data.sensor_id, data.payload);
 
 	return err;
+}
+
+static int get_data(knot_msg_data data)
+{
+	int err;
+	knot_msg_data msg;
+	knot_data *data_resp;
+	ssize_t nbytes;
+
+	memset(&msg, 0, sizeof(msg));
+
+	err = thing_read(data.sensor_id, data_resp);
+
+	if (err < 0)
+		return err;
+
+	msg.hdr.type = KNOT_MSG_DATA;
+	msg.sensor_id = data.sensor_id;
+	memcpy(&msg.payload, &data_resp, sizeof(data_resp));
+	msg.hdr.payload_length = sizeof(msg.payload);
+
+	nbytes = hal_comm_send(sock, &msg, sizeof(msg.hdr) +
+							msg.hdr.payload_len);
+	if (nbytes < 0)
+		return -1;
+
+	return 0;
 }
