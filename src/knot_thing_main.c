@@ -307,16 +307,24 @@ static int data_item_write(uint8_t sensor_id, knot_data *data)
 
 int8_t knot_thing_run(void)
 {
+
+	/* TODO: call protocol run */
+
+
+
+	return 0;
+}
+
+int8_t verify_events(uint8_t index, knot_data *data)
+{
 	uint8_t i = 0, uint8_val = 0, comparison = 0, uint8_buffer[KNOT_DATA_RAW_SIZE];
 	int32_t int32_val = 0, multiplier = 0;
 	uint32_t uint32_val = 0;
-	/* TODO: Monitor messages from network */
-
 	/*
 	 * For all registered data items: verify if value
 	 * changed according to the events registered.
 	 */
-
+	/* FIXME: Is it really better to iterate over ALL sensors at once? */
 	// TODO: add timer events
 	for (i = 0; i < KNOT_THING_DATA_MAX; i++)
 	{
@@ -407,9 +415,8 @@ int8_t knot_thing_run(void)
 		// Nothing changed
 		if (comparison == 0)
 			continue;
-
-		// TODO: If something changed, send message
 	}
+		// TODO: If something changed, create message
 
 	return 0;
 }
