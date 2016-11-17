@@ -48,10 +48,12 @@ static data_function thing_read;
 static data_function thing_write;
 static config_function configf;
 static int sock = -1;
+static events_function eventf;
 
 int knot_thing_protocol_init(uint8_t domain, uint8_t protocol, const char *thing_name,
 					data_function read, data_function write,
-				schema_function schema, config_function config)
+				schema_function schema, config_function config,
+							events_function event)
 {
 	int len;
 
@@ -67,6 +69,7 @@ int knot_thing_protocol_init(uint8_t domain, uint8_t protocol, const char *thing
 	thing_read = read;
 	thing_write = write;
 	config = config;
+	eventf = event;
 }
 
 void knot_thing_protocol_exit(void)
