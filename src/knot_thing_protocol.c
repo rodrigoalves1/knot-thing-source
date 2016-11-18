@@ -333,7 +333,7 @@ int knot_thing_protocol_run(void)
 		if (retval < 0)
 			state = STATE_ERROR;
 		else if (retval == 0)
-			state = STATE_SCHEMA;
+			state = STATE_ONLINE;
 	break;
 
 	case STATE_REGISTERING:
