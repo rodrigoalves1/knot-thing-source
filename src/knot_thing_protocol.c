@@ -297,7 +297,7 @@ int knot_thing_protocol_run(void)
 	ssize_t ilen;
 	knot_msg kreq;
 	knot_msg_data msg_data;
-
+	size_t uuid_len, token_len;
 	memset(&msg_data, 0, sizeof(msg_data));
 
 	if (enable_run == 0)
@@ -326,22 +326,18 @@ int knot_thing_protocol_run(void)
 			break;
 		}
 		/*
-		 * uuid/token flags indicate wheter they are
-		 * stored in EEPROM or not
-		 */
-		hal_storage_read(KNOT_UUID_FLAG_ADDR, &uuid_flag,
-						KNOT_UUID_FLAG_LEN);
-		hal_storage_read(KNOT_TOKEN_FLAG_ADDR, &token_flag,
-						KNOT_TOKEN_FLAG_LEN);
-		/*
-		 * If flag was found then we read the addresses and send
+		 * If uuid/token were found, read the addresses and send
 		 * the auth request, otherwise register request
 		 */
-		if (uuid_flag && token_flag) {
-			hal_storage_read(KNOT_UUID_ADDR, uuid,
-						KNOT_PROTOCOL_UUID_LEN);
-			hal_storage_read(KNOT_TOKEN_ADDR, token,
-					KNOT_PROTOCOL_TOKEN_LEN);
+		uuid_len = hal_storage_read_end(HAL_STORAGE_ID_UUID, uuid,
+					KNOT_PROTOCOL_UUID_LEN);
+		token_len = hal_storage_read_end(HAL_STORAGE_ID_TOKEN, token,
+				KNOT_PROTOCOL_TOKEN_LEN);
+
+		if (uuid_len > 0 && token_len > 0) {
+			if (uuid_len != KNOT_PROTOCOL_UUID_LEN ||
+					token_len != KNOT_PROTOCOL_TOKEN_LEN)
+				return KNOT_INVALID_CREDENTIAL;
 
 			state = STATE_AUTHENTICATING;
 			if (send_auth() < 0) {
