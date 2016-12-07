@@ -10,11 +10,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#endif
+
 #include "knot_thing_protocol.h"
 #include "include/avr_errno.h"
 #include "include/avr_unistd.h"
 #include "include/storage.h"
 #include "include/comm.h"
+#include "include/nrf24.h"
+#include "include/gpio.h"
+#include "include/time.h"
 
 /*KNoT client storage mapping */
 #define KNOT_UUID_FLAG_ADDR		0
@@ -52,12 +59,15 @@ static events_function eventf;
 static int cli_sock = -1;
 /* FIXME: Thing address should be received via NFC */
 static uint64_t addr = 0xACDCDEAD98765432;
+static unsigned long time;
 
 int knot_thing_protocol_init(const char *thing_name, data_function read,
 	data_function write, schema_function schema, config_function config,
 							events_function event)
 {
 	int len;
+
+	hal_gpio_pin_mode(5, INPUT_PULLUP);
 
 	if (hal_comm_init("NRF0") < 0)
 		return -1;
@@ -69,6 +79,7 @@ int knot_thing_protocol_init(const char *thing_name, data_function read,
 
 	len = MIN(strlen(thing_name), sizeof(device_name) - 1);
 	strncpy(device_name, thing_name, len);
+	time = 0;
 	enable_run = 1;
 	schemaf = schema;
 	thing_read = read;
@@ -287,6 +298,25 @@ static inline int is_uuid(const char *string)
 		string[13] == '-' && string[18] == '-' && string[23] == '-');
 }
 
+static int clear_data(void)
+{
+	unsigned long current_time;
+
+	if (!hal_gpio_digital_read(5)) {
+		if(time == 0)
+			time = hal_time_ms();
+		current_time = hal_time_ms();
+		if ((current_time - time) >= 5000) {
+			return 1;
+		}
+		return 0;
+	}
+	time = 0;
+	current_time = 0;
+	return 0;
+
+}
+
 int knot_thing_protocol_run(void)
 {
 	static uint8_t state = STATE_DISCONNECTED;
@@ -300,6 +330,16 @@ int knot_thing_protocol_run(void)
 
 	if (enable_run == 0)
 		return -1;
+
+	/*
+	 * Verifies if the button for eeprom clear is pressed for more than 5s
+	 */
+	if (clear_data()) {
+		hal_storage_reset_end();
+		state = STATE_DISCONNECTED;
+		previous_state = STATE_DISCONNECTED;
+		return 0;
+	}
 
 	/* Network message handling state machine */
 	switch (state) {
