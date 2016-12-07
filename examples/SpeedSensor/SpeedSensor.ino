@@ -9,6 +9,7 @@
 
 #include <KNoTThing.h>
 
+#define SS_PIN              6
 #define SPEED_SENSOR_ID     3
 #define SPEED_SENSOR_NAME   "Speed Sensor"
 
@@ -16,6 +17,9 @@
 #define LIGHT_BULB_ID       1
 #define LIGHT_BULB_NAME     "Light bulb"
 
+#define POT          5
+#define POT_NAME     "Potenciometro"
+define  POT_ID       1
 
 KNoTThing thing;
 static int32_t speed_value = 0;
@@ -24,7 +28,7 @@ static uint8_t led_value = 0;
 static int speed_read(int32_t *val, int32_t *multiplier)
 {
 
-    *val = speed_value++;
+    *val = digitalRead(SS_PIN);
     *multiplier = 1;
     Serial.print("speed_read(): ");
     Serial.println(*val);
@@ -54,14 +58,27 @@ static int led_write(uint8_t *val)
     return 0;
 }
 
+static int float_read(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
+{
+    return 0;
+}
+
+static int float_write(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
+{
+    return 0;
+}
+
 void setup()
 {
     Serial.begin(9600);
     pinMode(LED, OUTPUT);
+    pinMode(SS_PIN, INPUT);
     thing.init("Speed");
     thing.registerIntData(SPEED_SENSOR_NAME, SPEED_SENSOR_ID, KNOT_TYPE_ID_SPEED, KNOT_UNIT_SPEED_MS, speed_read, speed_write);
     thing.registerBoolData(LIGHT_BULB_NAME, LIGHT_BULB_ID, KNOT_TYPE_ID_SWITCH, KNOT_UNIT_NOT_APPLICABLE, led_read, led_write);
+    thing.registerFloatData(POT_NAME, POT_ID, KNOT_TYPE_ID_SWITCH, KNOT_UNIT_NOT_APPLICABLE, led_read, led_write);
 }
+
 
 void loop()
 {
