@@ -333,7 +333,7 @@ int8_t knot_thing_run(void)
 int verify_events(knot_msg_data *data)
 {
 	uint8_t err = 0, comparison = 0;
-	uint32_t current_time = hal_time_ms(); // update the time variable
+	uint32_t current_time = hal_time_ms() * 1000; // update the time variable
 
 	/*
 	 * For all registered data items: verify if value
@@ -342,8 +342,10 @@ int verify_events(knot_msg_data *data)
 
 	err = data_item_read(evt_sensor_id, data);
 
-	if (err < 0)
+	if (evt_sensor_id < 0 || (evt_sensor_id >= KNOT_THING_DATA_MAX) || item_is_unregistered(sensor_id) == 0) {
+		evt_sensor_id++;
 		return -1;
+	}
 	/* Value did not change or error: return -1, 0 means send data */
 	if (data_items[evt_sensor_id].value_type == KNOT_VALUE_TYPE_RAW) {
 
@@ -392,7 +394,8 @@ int verify_events(knot_msg_data *data)
 		data_items[evt_sensor_id].last_data.val_f.value_dec = data->payload.values.val_f.value_dec;
 		data_items[evt_sensor_id].last_data.val_f.multiplier = data->payload.values.val_f.multiplier;
 	} else {
-	// This data item is not registered with a valid value type
+		// This data item is not registered with a valid value type
+		evt_sensor_id++;
 		return -1;
 	}
 
@@ -410,6 +413,8 @@ int verify_events(knot_msg_data *data)
 	 * sensors/actuators once at each loop. When the last sensor was verified
 	 * we reinitialize the counter, otherwise we just increment it.
 	 */
+	data->hdr.type = KNOT_MSG_DATA;
+	data->sensor_id = evt_sensor_id;
 	evt_sensor_id++;
 
 	if (evt_sensor_id == max_sensor_id)
@@ -419,7 +424,7 @@ int verify_events(knot_msg_data *data)
 	if (comparison == 0)
 		return -1;
 
-	// TODO: If something changed, create message
+	data->hdr.type = KNOT_MSG_DATA;
 
 	return 0;
 }
