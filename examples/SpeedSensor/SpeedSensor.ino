@@ -17,13 +17,13 @@
 #define LIGHT_BULB_ID       1
 #define LIGHT_BULB_NAME     "Light bulb"
 
-#define POT          5
 #define POT_NAME     "Potenciometro"
-define  POT_ID       1
+#define POT_ID       2
 
 KNoTThing thing;
 static int32_t speed_value = 0;
 static uint8_t led_value = 0;
+static int32_t pot_value = 0;
 
 static int speed_read(int32_t *val, int32_t *multiplier)
 {
@@ -58,12 +58,21 @@ static int led_write(uint8_t *val)
     return 0;
 }
 
-static int float_read(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
+static int pot_read(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
 {
+    pot_value = analogRead(A5);
+    float voltage = pot_value * (5.0 / 1023);
+    *val_int = (int32_t) voltage;
+    *val_dec = (uint32_t) (voltage - *val_int) * 10;
+    Serial.print("POT: ");
+    Serial.print(*val_int);
+    Serial.print(".");
+    Serial.println(*val_dec);
+    *multiplier = 1;
     return 0;
 }
 
-static int float_write(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
+static int pot_write(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
 {
     return 0;
 }
@@ -76,7 +85,7 @@ void setup()
     thing.init("Speed");
     thing.registerIntData(SPEED_SENSOR_NAME, SPEED_SENSOR_ID, KNOT_TYPE_ID_SPEED, KNOT_UNIT_SPEED_MS, speed_read, speed_write);
     thing.registerBoolData(LIGHT_BULB_NAME, LIGHT_BULB_ID, KNOT_TYPE_ID_SWITCH, KNOT_UNIT_NOT_APPLICABLE, led_read, led_write);
-    thing.registerFloatData(POT_NAME, POT_ID, KNOT_TYPE_ID_SWITCH, KNOT_UNIT_NOT_APPLICABLE, led_read, led_write);
+    thing.registerFloatData(POT_NAME,POT_ID, KNOT_TYPE_ID_VOLTAGE, KNOT_UNIT_VOLTAGE_V, pot_read, pot_write);
 }
 
 
@@ -84,4 +93,3 @@ void loop()
 {
     thing.run();
 }
-

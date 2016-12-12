@@ -342,7 +342,7 @@ int verify_events(knot_msg_data *data)
 
 	err = data_item_read(evt_sensor_id, data);
 
-	if (evt_sensor_id < 0 || (evt_sensor_id >= KNOT_THING_DATA_MAX) || item_is_unregistered(sensor_id) == 0) {
+	if (evt_sensor_id < 0 || (evt_sensor_id >= KNOT_THING_DATA_MAX) || item_is_unregistered(evt_sensor_id) == 0) {
 		evt_sensor_id++;
 		return -1;
 	}

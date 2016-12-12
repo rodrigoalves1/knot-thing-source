@@ -68,7 +68,7 @@ int knot_thing_protocol_init(const char *thing_name, data_function read,
 {
 	int len;
 
-	hal_gpio_pinMode(6, INPUT_PULLUP);
+	hal_gpio_pin_mode(6, INPUT_PULLUP);
 
 	if (hal_comm_init("NRF0") < 0)
 		return -1;
@@ -304,7 +304,7 @@ static int clear_data(void)
 {
 	unsigned long current_time;
 
-	if (!hal_gpio_digitalRead(6)) {
+	if (!hal_gpio_digital_read(6)) {
 		if(time == 0)
 			time = hal_time_ms();
 		current_time = hal_time_ms();

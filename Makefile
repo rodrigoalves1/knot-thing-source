@@ -28,9 +28,9 @@ KNOT_PROTOCOL_LIB_REPO = knot-protocol-source
 KNOT_PROTOCOL_LIB_SITE = https://github.com/CESARBR/$(KNOT_PROTOCOL_LIB_REPO).git
 KNOT_PROTOCOL_LIB_DIR = ./$(KNOT_THING_DOWNLOAD_DIR)/$(KNOT_PROTOCOL_LIB_REPO)/src
 
-KNOT_HAL_LIB_VERSION = master
+KNOT_HAL_LIB_VERSION = devel_gpio_ptvsf_v1
 KNOT_HAL_LIB_REPO = knot-hal-source
-KNOT_HAL_LIB_SITE = https://github.com/CESARBR/$(KNOT_HAL_LIB_REPO).git
+KNOT_HAL_LIB_SITE = https://github.com/pauloserrafh/$(KNOT_HAL_LIB_REPO).git
 KNOT_HAL_HDR_LIB_DIR = ./$(KNOT_THING_DOWNLOAD_DIR)/$(KNOT_HAL_LIB_REPO)/include
 KNOT_HAL_SRC_LIB_DIR = ./$(KNOT_THING_DOWNLOAD_DIR)/$(KNOT_HAL_LIB_REPO)/src/hal
 
@@ -84,6 +84,9 @@ $(KNOT_THING_TARGET):  $(KNOT_PROTOCOL_LIB_DIR)
 
 	# Include nrf24l01 headers and source files
 	$(FIND) ./$(KNOT_HAL_SRC_NRF_LIB_DIR)/ \( \( -name '*.c' -or -name '*.h' \) -and ! -name '*linux*' \) -exec $(CP) {} ./$(KNOT_THING_NAME)/src \;
+
+	# Include drivers headers and source files
+	$(CP) -r ./$(KNOT_HAL_SRC_DRIVERS_LIB_DIR)/gpio/*.c ./$(KNOT_THING_NAME)/src
 
 	# Include drivers headers and source files
 	$(CP) -r ./$(KNOT_HAL_SRC_DRIVERS_LIB_DIR)/*.c ./$(KNOT_THING_NAME)/src
