@@ -46,6 +46,9 @@
 #define MIN(a,b)			(((a) < (b)) ? (a) : (b))
 #endif
 
+/* Retransmission timeout in ms*/
+#define TIME				20000
+
 static uint8_t enable_run = 0, schema_sensor_id = 0;
 static char uuid[KNOT_PROTOCOL_UUID_LEN];
 static char token[KNOT_PROTOCOL_TOKEN_LEN];
@@ -70,6 +73,7 @@ void set_nrf24MAC(struct nrf24_mac *mac)
 	hal_storage_write_end(HAL_STORAGE_ID_MAC, mac, sizeof(*mac));
 }
 static unsigned long time;
+static uint32_t last_timeout;
 
 int knot_thing_protocol_init(const char *thing_name, data_function read,
 	data_function write, schema_function schema, config_function config,
@@ -96,6 +100,7 @@ int knot_thing_protocol_init(const char *thing_name, data_function read,
 	thing_write = write;
 	configf = config;
 	eventf = event;
+	last_timeout = 0;
 }
 
 void knot_thing_protocol_exit(void)
@@ -435,6 +440,7 @@ int knot_thing_protocol_run(void)
 		retval = send_schema();
 		switch (retval) {
 		case KNOT_SUCCESS:
+			last_timeout = hal_time_ms();
 			state = STATE_SCHEMA_RESP;
 			break;
 		case KNOT_ERROR_UNKNOWN:
@@ -474,7 +480,8 @@ int knot_thing_protocol_run(void)
 			}
 			state = STATE_ONLINE;
 			schema_sensor_id = 0;
-		}
+		} else if (hal_timeout(hal_time_ms(), last_timeout, TIME) > 0)
+			state = STATE_SCHEMA;
 	break;
 
 	case STATE_ONLINE:
