@@ -46,8 +46,10 @@ static int speed_write(int32_t *val, int32_t *multiplier)
 
 static int led_read(uint8_t *val)
 {
-    digitalRead(LED, led_value);
+    led_value = digitalRead(LED);
     *val = led_value;
+    Serial.print("LED: ");
+    Serial.println(*val);
     return 0;
 }
 
@@ -55,6 +57,8 @@ static int led_write(uint8_t *val)
 {
     led_value = *val;
     digitalWrite(LED, led_value);
+    Serial.print("LED: ");
+    Serial.println(led_value);
     return 0;
 }
 
@@ -63,7 +67,7 @@ static int pot_read(int32_t *val_int, uint32_t *val_dec, int32_t *multiplier)
     pot_value = analogRead(A5);
     float voltage = pot_value * (5.0 / 1023);
     *val_int = (int32_t) voltage;
-    *val_dec = (uint32_t) (voltage - *val_int) * 10;
+    *val_dec = (voltage - *val_int) * 10;
     Serial.print("POT: ");
     Serial.print(*val_int);
     Serial.print(".");
