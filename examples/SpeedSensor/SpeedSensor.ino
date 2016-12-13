@@ -9,6 +9,7 @@
 
 #include <KNoTThing.h>
 
+#define SPEED_SENSOR_PIN    6
 #define SPEED_SENSOR_ID     3
 #define SPEED_SENSOR_NAME   "Speed Sensor"
 
@@ -20,7 +21,7 @@ static int32_t speed_value = 0;
 static int speed_read(int32_t *val, int32_t *multiplier)
 {
 
-    *val = speed_value++;
+    *val = digitalRead(SPEED_SENSOR_PIN);
     *multiplier = 1;
     Serial.print("speed_read(): ");
     Serial.println(*val);
@@ -39,8 +40,10 @@ void setup()
 {
     Serial.begin(9600);
     pinMode(LED, OUTPUT);
+    pinMode(SPEED_SENSOR_PIN,OUTPUT);
     thing.init("Speed");
-    thing.registerIntData(SPEED_SENSOR_NAME, SPEED_SENSOR_ID, KNOT_TYPE_ID_SPEED, KNOT_UNIT_SPEED_MS, speed_read, speed_write);
+    thing.registerIntData(SPEED_SENSOR_NAME, SPEED_SENSOR_ID,
+     KNOT_TYPE_ID_SPEED, KNOT_UNIT_SPEED_MS, speed_read, speed_write);
 }
 
 void loop()
