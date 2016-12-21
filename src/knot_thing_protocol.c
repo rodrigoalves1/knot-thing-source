@@ -92,7 +92,10 @@ int knot_thing_protocol_init(const char *thing_name, data_function read,
 	hal_gpio_pin_mode(CLEAR_EEPROM_PIN, INPUT_PULLUP);
 
 	/* Set mac address */
-	set_nrf24MAC();
+	hal_storage_read_end(HAL_STORAGE_ID_MAC, &addr,
+						sizeof(struct nrf24_mac));
+	if (addr >> 32 != 0 || addr == 0)
+		set_nrf24MAC();
 
 	if (hal_comm_init("NRF0", NULL) < 0)
 		return -1;
@@ -576,6 +579,7 @@ int knot_thing_protocol_run(void)
 		hal_storage_reset_end();
 		hal_comm_close(cli_sock);
 		state = STATE_DISCONNECTED;
+		set_nrf24MAC();
 	}
 
 	/* Network message handling state machine */
